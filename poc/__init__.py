@@ -1,6 +1,6 @@
 import os
 
-import secrets
+from .config import SECRET_KEY
 
 from flask import Flask
 
@@ -17,6 +17,8 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    app.config["SECRET_KEY"] = SECRET_KEY
 
     from . import server
     app.register_blueprint(server.bp)
