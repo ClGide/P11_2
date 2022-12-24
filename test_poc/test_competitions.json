@@ -2,13 +2,22 @@
     "competitions": [
         {
             "name": "Spring Festival",
-            "date": "2020-03-27 10:00:00",
-            "number_of_places": "25"
+            "date": "2023-03-27 10:00:00",
+            "number_of_places": 25,
+            "taken_place": false
         },
         {
             "name": "Fall Classic",
             "date": "2020-10-22 13:30:00",
-            "number_of_places": "13"
+            "number_of_places": 13,
+            "taken_place": false
+        },
+        {
+            "name": "Summer plates",
+            "date": "2020-10-22 13:30:00",
+            "number_of_places": 1,
+            "taken_place": true
         }
+
     ]
 }

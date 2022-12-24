@@ -99,8 +99,7 @@ def purchase_places():
     places_required = int(request.form['places'])
     club_number_of_points = int(club["points"])
 
-    failed_checks = run_checks(competition, club, places_required,
-                               club_number_of_points)
+    failed_checks = run_checks(competition, club, places_required)
     if failed_checks:
         return failed_checks
 

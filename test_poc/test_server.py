@@ -1,7 +1,7 @@
 import pytest
+
 from Python_Testing.poc import create_app
-from Python_Testing.poc.server import load_clubs, load_competitions
-from Python_Testing.poc.server import show_summary, book, purchase_places
+from Python_Testing.poc.server import show_summary, book, purchase_places, load_clubs, load_competitions
 
 
 COMPETITION_PATH = "./test_competitions.json"
@@ -37,25 +37,9 @@ def clubs(client):
     return clubs
 
 
-def test_load_clubs_good_format(client):
-    clubs = load_clubs(CLUB_PATH)
-    assert "name" in clubs[0].keys()
-    assert "email" in clubs[0].keys()
-    assert "points" in clubs[0].keys()
-
-
-def test_load_competitions_good_format(client):
-    competitions = load_competitions(COMPETITION_PATH)
-    assert "name" in competitions[0].keys()
-    assert "date" in competitions[0].keys()
-    assert "number_of_places" in competitions[0].keys()
-
-
 def test_show_summary_show_points(app, client):
     with app.test_request_context("/show_summary", data={"email": "gide@gmail.com"}):
         template = show_summary(COMPETITION_PATH, CLUB_PATH)
-    print(type(template))
-    print(template)
     assert 'Points available' in template
 
 

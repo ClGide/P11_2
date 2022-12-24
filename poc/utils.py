@@ -169,7 +169,7 @@ def competition_took_place(competition: dict[str, any]) -> Union[str, None]:
 
 
 def run_checks(competition: dict[str, any], club: dict[str, any],
-               required_places: int, club_number_of_points: int) -> callable:
+               required_places: int) -> callable:
     """Makes sure all conditions are met to enable the club to purchase the
     required places at the competition.
 
@@ -182,8 +182,6 @@ def run_checks(competition: dict[str, any], club: dict[str, any],
         club: the club trying to purchase places.
         required_places: the number of places the club wants to reserve at the
             tournament.
-        club_number_of_points: the number of points the club had before this
-            operation.
 
     Returns: A call to render_template. It renders booking.html from the
         templates directory with the club and competition vars as a context.
@@ -194,7 +192,7 @@ def run_checks(competition: dict[str, any], club: dict[str, any],
         required_places
     ) or not_enough_points(
         required_places,
-        club_number_of_points
+        club["points"]
     ) or no_more_available_places(
         required_places,
         competition["number_of_places"]
