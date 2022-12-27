@@ -23,8 +23,8 @@ bp = Blueprint('gudlft', __name__)
 
 
 @bp.route('/')
-def index():
-    clubs = load_clubs(CLUB_PATH)
+def index(club_path=CLUB_PATH):
+    clubs = load_clubs(club_path)
     return render_template('index.html',
                            clubs=clubs)
 
@@ -43,16 +43,16 @@ def come_back_welcome_page(email):
 
 
 @bp.route('/show_summary', methods=['POST'])
-def show_summary():
+def show_summary(competition_path=COMPETITION_PATH, club_path=CLUB_PATH):
     """
     Loads the available competitions in welcome.html and the data about the
     club that just logged in through index.html. It handles the form in index.html.
     """
-    club, clubs = search_club("email", request.form['email'], CLUB_PATH)
-    competitions = load_competitions(COMPETITION_PATH)
+    club, clubs = search_club("email", request.form['email'], club_path)
+    competitions = load_competitions(competition_path)
     if club:
         competitions = update_all_competitions_taken_place_field(
-            competitions, COMPETITION_PATH
+            competitions, competition_path
         )
         return render_template('welcome.html',
                                club=club,
@@ -66,7 +66,9 @@ def show_summary():
 @bp.route(
     '/book/<competition_to_be_booked_name>/<club_making_reservation_name>'
 )
-def book(competition_to_be_booked_name, club_making_reservation_name):
+def book(competition_to_be_booked_name,
+         club_making_reservation_name,
+         competition_path=COMPETITION_PATH, club_path=CLUB_PATH):
     """
     Shows the user for which competitions he can book places.
 
@@ -77,34 +79,33 @@ def book(competition_to_be_booked_name, club_making_reservation_name):
     competition, competitions = search_competition(
         "name",
         competition_to_be_booked_name,
-        COMPETITION_PATH
+        competition_path
     )
-    club, clubs = search_club("name", club_making_reservation_name, CLUB_PATH)
+    club, clubs = search_club("name", club_making_reservation_name, club_path)
     return render_template('booking.html',
                            club=club,
                            competition=competition)
 
 
 @bp.route('/purchase_places', methods=['POST'])
-def purchase_places():
+def purchase_places(competition_path=COMPETITION_PATH, club_path=CLUB_PATH):
     """Handles the form in booking.html."""
 
     competition_to_be_booked_name = request.form['competition']
     competition, competitions = search_competition(
         "name",
         competition_to_be_booked_name,
-        COMPETITION_PATH
+        competition_path
     )
-    club, clubs = search_club("name", request.form["club"], CLUB_PATH)
+    club, clubs = search_club("name", request.form["club"], club_path)
     places_required = int(request.form['places'])
-    club_number_of_points = int(club["points"])
 
     failed_checks = run_checks(competition, club, places_required)
     if failed_checks:
         return failed_checks
 
     competitions, club = record_changes(competitions, competition, clubs, club,
-                                        places_required, club_number_of_points,
+                                        places_required,
                                         COMPETITION_PATH, CLUB_PATH)
     flash('Great-booking complete!')
     return render_template('welcome.html',

@@ -89,15 +89,15 @@ def test_search_club_second_returned_value_correct():
 
 
 def test_search_club_raise_error_wrong_field():
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(KeyError) as excinfo:
         club, clubs = search_club("wrong_field", "john@simplylift.co", CLUB_PATH)
-
-    assert "the value for the field arg isn't a valid one" in str(excinfo.value)
+    assert "the field you used is not valid" in str(excinfo.value)
 
 
 def test_search_club_wrong_value():
-    club = search_club("name", "wrong_value", CLUB_PATH)
-    assert club == []
+    with pytest.raises(ValueError) as excinfo:
+        club, clubs = search_club("name", "wrong_value", CLUB_PATH)
+    assert "there is no item matching the value you entered" in str(excinfo.value)
 
 
 def test_search_competition_by_name_first_returned_value_correct():
@@ -120,15 +120,15 @@ def test_search_competition_second_returned_value_correct():
 
 
 def test_search_competition_raise_error_wrong_field():
-    with pytest.raises(ValueError) as excinfo:
-        club, clubs = search_club("wrong_field", "Spring Festival", COMPETITION_PATH)
-
-    assert "the value for the field arg isn't a valid one" in str(excinfo.value)
+    with pytest.raises(KeyError) as excinfo:
+        competition, competitions = search_competition("wrong_field", "Spring Festival", COMPETITION_PATH)
+    assert "the field you used is not valid" in str(excinfo.value)
 
 
 def test_search_competition_wrong_value():
-    competition = search_competition("name", "wrong_value", COMPETITION_PATH)
-    assert competition == []
+    with pytest.raises(ValueError) as excinfo:
+        competition, competitions = search_competition("name", "wrong_value", COMPETITION_PATH)
+    assert "there is no item matching the value you entered" in str(excinfo.value)
 
 
 @pytest.fixture
@@ -197,19 +197,32 @@ def test_competition_took_place(app, competitions):
         assert competition_took_place(competitions[2]) == "failed_check"
 
 
-_competitions = competitions()
-_clubs = clubs()
+COMPETITIONS = load_competitions(COMPETITION_PATH)
+CLUBS = load_clubs(CLUB_PATH)
 
-spring_festival = _competitions[0]
-fall_classic = _competitions[1]
-simply_lift = _clubs[0]
+spring_festival = COMPETITIONS[0]
+summer_plates = COMPETITIONS[2]
+simply_lift = CLUBS[0]
+iron_temple = CLUBS[1]
 test_values = [
-    # should fail because there are more than 12 places required
-    (spring_festival, simply_lift, 13, 25, "failed_check"),
-    (spring_festival, simply_lift, 14,  "failed_check"),
+    # should fail because the club requires more than 12 places.
+    (spring_festival, simply_lift, 13, "you required more than 12 places !"),
+    # should fail because the club only have 2 points.
+    (spring_festival, iron_temple, 3, "you do not have enough points!"),
+    # should fail because there are only 2 places available at the competition.
+    (summer_plates, simply_lift, 3, "there are no more places available !"),
+    # should fail because the competition already took place
+    (summer_plates, iron_temple, 1, "the competition already took place !"),
 ]
 
 
-@pytest.mark.parametrize("competition, club, required_places, club_number_of_points, expected", test_values)
-def test_run_checks(app, competition, club, required_places, club_number_of_points, expected):
-    assert run_checks(competition, club, required_places, club_number_of_points) == expected
+@pytest.mark.parametrize("competition, club, required_places, expected", test_values)
+def test_run_checks_failing(app, competition, club, required_places, expected):
+    with app.test_request_context("/", method="GET"):
+        assert expected in run_checks(competition, club, required_places)
+
+
+def test_run_check_passing(app):
+    # should pass because all conditions are met
+    with app.test_request_context("/", method="GET"):
+        assert run_checks(spring_festival, iron_temple, 1) is None

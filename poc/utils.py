@@ -29,37 +29,37 @@ def load_competitions(path) -> list[dict[str, any]]:
         return list_of_competitions
 
 
-def search_club(field: str, value: any, path: str) -> Union[list, tuple[
+def search_club(field: str, value: any, path: str) -> Union[tuple[
     dict[str, any], list[dict[str, any]]]]:
     """Loads the JSON file containing data about the clubs and
     returns data about the club having the corresponding field and
     value. For convenience, also returns the list of clubs."""
     if field not in ["name", "email", "points", "reserved_places"]:
-        raise ValueError("the value for the field arg isn't a valid one")
+        raise KeyError("the field you used is not valid")
 
     clubs = load_clubs(path)
     try:
         club = [club for club in clubs if club[field] == value][0]
     except IndexError or KeyError:
-        return []
+        raise ValueError("there is no item matching the value you entered")
     else:
         return club, clubs
 
 
-def search_competition(field: str, value: any, path: str) -> Union[list, tuple[
+def search_competition(field: str, value: any, path: str) -> Union[tuple[
     dict[str, any], list[dict[str, any]]]]:
     """Loads the JSON file containing data about the competitions and only
     returns data about the competition having the corresponding field and
     value. For convenience, also returns the list of competitions."""
     if field not in ["name", "date", "number_of_places", "taken_place"]:
-        raise ValueError("the value for the field arg isn't a valid one")
+        raise KeyError("the field you used is not valid")
 
     competitions = load_competitions(path)
     try:
         competition = [competition for competition in competitions
                        if competition[field] == value][0]
     except IndexError or KeyError:
-        return []
+        raise ValueError("there is no item matching the value you entered")
     else:
         return competition, competitions
 
@@ -209,7 +209,6 @@ def record_changes(competitions: list[dict[str, any]],
                    clubs: list[dict[str, any]],
                    club: dict[str, any],
                    required_places: int,
-                   club_number_of_points: int,
                    competition_path: str,
                    club_path: str
                    ) -> tuple[
@@ -226,8 +225,6 @@ def record_changes(competitions: list[dict[str, any]],
         club: the club trying to purchase places.
         required_places: the number of places the club wants to reserve at the
             tournament within this operation.
-        club_number_of_points: the number of points the club has before this
-            operation.
         competition_path: path to the JSON file storing the competitions.
         club_path: path to the JSON file storing the clubs.
 
@@ -240,7 +237,7 @@ def record_changes(competitions: list[dict[str, any]],
         competition['number_of_places']
     ) - required_places
 
-    club["points"] = club_number_of_points - required_places
+    club["points"] = club["points"] - required_places
 
     reserved_places = club["reserved_places"][competition_to_be_booked_name]
     total_reserved_places = reserved_places + required_places
