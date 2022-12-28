@@ -5,7 +5,7 @@
             "email": "john@simplylift.co",
             "points": 1,
             "reserved_places": {
-                "Spring Festival": 0,
+                "Spring Festival": 12,
                 "Fall Classic": 0
             }
         },
@@ -21,7 +21,7 @@
         {
             "name": "She Lifts",
             "email": "kate@shelifts.co.uk",
-            "points": "12",
+            "points": 12,
             "reserved_places": {
                 "Spring Festival": 0,
                 "Fall Classic": 0

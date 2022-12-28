@@ -126,8 +126,8 @@ def not_enough_points(required_places: int,
         return "failed_check"
 
 
-def no_more_available_places(required_places: int,
-                             places_available: int) -> Union[str, None]:
+def no_more_available_places(places_available: int,
+                             required_places: int) -> Union[str, None]:
     """Flashes the corresponding message if there aren't enough places at the
     competition.
 
@@ -194,8 +194,8 @@ def run_checks(competition: dict[str, any], club: dict[str, any],
         required_places,
         club["points"]
     ) or no_more_available_places(
-        required_places,
-        competition["number_of_places"]
+        competition["number_of_places"],
+        required_places
     ) or competition_took_place(competition)
 
     if failed_checks:

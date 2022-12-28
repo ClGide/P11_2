@@ -106,7 +106,7 @@ def purchase_places(competition_path=COMPETITION_PATH, club_path=CLUB_PATH):
 
     competitions, club = record_changes(competitions, competition, clubs, club,
                                         places_required,
-                                        COMPETITION_PATH, CLUB_PATH)
+                                        competition_path, club_path)
     flash('Great-booking complete!')
     return render_template('welcome.html',
                            club=club,

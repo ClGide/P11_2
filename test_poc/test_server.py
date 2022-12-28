@@ -88,9 +88,46 @@ def test_book_enable_booking(app):
 
 
 def test_purchase_places_invalid_competition_name(app):
-    with app.test_request_context("/purchase_places",
-                                  method="POST",
-                                  data={"competition": "non existent competition"}):
-        template = server.purchase_places(COMPETITION_PATH, CLUB_PATH)
-    assert "Points available" in template
+    with app.test_request_context(
+            "/purchase_places",
+            method="POST",
+            data={"competition": "non existent competition",
+                  "club": "Simply Lift",
+                  "places": 0}
+    ):
+        with pytest.raises(ValueError) as excinfo:
+            template = server.purchase_places(COMPETITION_PATH, CLUB_PATH)
+        assert "there is no item matching the value you entered" in str(excinfo.value)
 
+
+def test_purchase_places_invalid_club_name(app):
+    with app.test_request_context(
+            "/purchase_places",
+            method="POST",
+            data={"competition": "Spring Festival",
+                  "club": "non existent club",
+                  "places": 0}
+    ):
+        with pytest.raises(ValueError) as excinfo:
+            template = server.purchase_places(COMPETITION_PATH, CLUB_PATH)
+        assert "there is no item matching the value you entered" in str(excinfo.value)
+
+
+def test_purchase_places_club_correct_point_deduction(app, competitions, clubs):
+    spring_festival = competitions[0]
+    simply_lift = clubs[0]
+
+    assert spring_festival["number_of_places"] == 25
+    assert simply_lift["points"] == 13
+
+    with app.test_request_context(
+            "/purchase_places",
+            method="POST",
+            data={"competition": "Spring Festival",
+                  "club": "Simply Lift",
+                  "places": 12}
+    ):
+        server.purchase_places(COMPETITION_PATH, CLUB_PATH)
+
+
+#    assert "Points available" in template

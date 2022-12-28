@@ -14,6 +14,7 @@ from Python_Testing.poc.utils import (load_clubs, load_competitions,
                                       no_more_available_places,
                                       competition_took_place,
                                       run_checks, record_changes)
+from Python_Testing.test_poc.decorators import rewrite_file_after_test
 
 
 COMPETITION_PATH = "./test_competitions.json"
@@ -177,9 +178,9 @@ def test_not_enough_points(app, required_places, club_number_of_points, expected
 
 
 test_values = [
-    (10, 2, "failed_check"),
+    (10, 2, None),
     (10, 10, None),
-    (22, 32, None),
+    (22, 32, "failed_check"),
 ]
 
 
@@ -187,7 +188,7 @@ test_values = [
 def test_no_more_available_places(app, required_places, places_available, expected):
     with app.test_request_context("/",
                                   method="GET"):
-        assert not_enough_points(required_places, places_available,) == expected
+        assert no_more_available_places(required_places, places_available) == expected
 
 
 def test_competition_took_place(app, competitions):
@@ -223,6 +224,34 @@ def test_run_checks_failing(app, competition, club, required_places, expected):
 
 
 def test_run_check_passing(app):
-    # should pass because all conditions are met
+    # should pass because all conditions are met.
     with app.test_request_context("/", method="GET"):
         assert run_checks(spring_festival, iron_temple, 1) is None
+
+
+@rewrite_file_after_test
+def test_record_changes_club_correct_deduction(app):
+    with app.test_request_context("/", method="POST"):
+        competitions, club = record_changes(COMPETITIONS, spring_festival, CLUBS, simply_lift,
+                                            10, COMPETITION_PATH, CLUB_PATH)
+
+        # The club is simply_lift. Before their purchase, they had 13 points. They should now
+        # have 3 points.
+        assert club["points"] == 3
+        # The club had already purchased 6 places at this competition. Therefore, the total
+        # number of purchased places should be 16. This doesn't respect the maximum of 12
+        # places per club per competition constraint. But it's normal because the constraint
+        # checks are done in run_checks. Thus, record_changes shouldn't be called if run_checks
+        # wasn't called before to check the validity of the operation.
+        assert club["reserved_places"]["Spring Festival"] == 16
+
+
+@rewrite_file_after_test
+def test_record_changes_competition_correct_deduction(app):
+    with app.test_request_context("/", method="POST"):
+        record_changes(COMPETITIONS, spring_festival, CLUBS, simply_lift,
+                       10, COMPETITION_PATH, CLUB_PATH)
+        # The competition is spring_festival. Before the purchase, they had 25 places available.
+        # Thus, after the purchase they should only have 12 places available.
+        assert spring_festival["number_of_places"] == 15
+
