@@ -30,7 +30,7 @@ def load_competitions(path) -> list[dict[str, any]]:
 
 
 def search_club(field: str, value: any, path: str) -> Union[tuple[
-    dict[str, any], list[dict[str, any]]]]:
+                dict[str, any], list[dict[str, any]]]]:
     """Loads the JSON file containing data about the clubs and
     returns data about the club having the corresponding field and
     value. For convenience, also returns the list of clubs."""
@@ -47,7 +47,7 @@ def search_club(field: str, value: any, path: str) -> Union[tuple[
 
 
 def search_competition(field: str, value: any, path: str) -> Union[tuple[
-    dict[str, any], list[dict[str, any]]]]:
+                       dict[str, any], list[dict[str, any]]]]:
     """Loads the JSON file containing data about the competitions and only
     returns data about the competition having the corresponding field and
     value. For convenience, also returns the list of competitions."""
@@ -220,9 +220,11 @@ def record_changes(competitions: list[dict[str, any]],
         competitions: all the competitions. Even if only one competition
             was modified, we need to write them all back to the JSON.
         competition: the competition where the club wants to purchase places.
+        FOR CONSISTENT BEHAVIOR, THIS ARG MUST BE AN ITEM OF THE COMPETITIONS ARG.
         clubs: all the clubs. Even if only one club
             was modified, we need to write them all back to the JSON.
         club: the club trying to purchase places.
+        FOR CONSISTENT BEHAVIOR, THIS ARG MUST BE AN ITEM OF THE CLUBS ARG.
         required_places: the number of places the club wants to reserve at the
             tournament within this operation.
         competition_path: path to the JSON file storing the competitions.
