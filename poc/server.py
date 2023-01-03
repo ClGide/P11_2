@@ -30,13 +30,15 @@ def index(club_path=CLUB_PATH):
 
 
 @bp.route("/back_to_summary/<email>")
-def come_back_welcome_page(email):
+def come_back_welcome_page(email,
+                           competition_path=COMPETITION_PATH,
+                           club_path=CLUB_PATH):
     """
     Loads the available competitions in welcome.html and the data about the
     club that used booking.html.
     """
-    competitions = load_competitions(COMPETITION_PATH)
-    club, clubs = search_club("email", email, CLUB_PATH)
+    competitions = load_competitions(competition_path)
+    club, clubs = search_club("email", email, club_path)
     return render_template('welcome.html',
                            club=club,
                            competitions=competitions)
@@ -115,8 +117,8 @@ def purchase_places(competition_path=COMPETITION_PATH, club_path=CLUB_PATH):
 
 
 @bp.route("/points")
-def points():
-    clubs_to_display = load_clubs(CLUB_PATH)
+def points(club_path=CLUB_PATH):
+    clubs_to_display = load_clubs(club_path)
     return render_template("points.html",
                            clubs=clubs_to_display)
 

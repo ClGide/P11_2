@@ -245,6 +245,7 @@ def record_changes(competitions: list[dict[str, any]],
     total_reserved_places = reserved_places + required_places
     club["reserved_places"][
         competition_to_be_booked_name] = total_reserved_places
+
     with open(club_path, "w") as to_be_updated_clubs:
         json.dump({"clubs": clubs},
                   to_be_updated_clubs,

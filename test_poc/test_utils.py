@@ -4,8 +4,9 @@ test_competition.json will have to be rewritten on
 the 2023-03-27 10:00:00 so that tests depending on that value
 stay relevant. E.g. test_competition_took_place supposes that
 the competition Spring Festival is in the future. But that will
-stop being the case on the 2023-03-27."""
+stop being the case on 2023-03-27."""
 
+import json
 import pytest
 
 from Python_Testing.poc import create_app
@@ -17,6 +18,7 @@ from Python_Testing.poc.utils import (load_clubs, load_competitions,
                                       no_more_available_places,
                                       competition_took_place,
                                       run_checks, record_changes)
+from Python_Testing.test_poc.test_server import clubs, competitions
 
 COMPETITION_PATH = "./test_competitions.json"
 CLUB_PATH = "./test_clubs.json"
@@ -29,24 +31,10 @@ def app():
     return app
 
 
-@pytest.fixture
-def competitions():
-    """returns the content of test_poc/test_competitions.json"""
-    competitions = load_competitions(COMPETITION_PATH)
-    return competitions
-
-
-@pytest.fixture
-def clubs():
-    """returns the content of test_poc/test_clubs.json"""
-    clubs = load_clubs(CLUB_PATH)
-    return clubs
-
-
 def test_load_clubs_good_keys(clubs):
     """Given the path to test_clubs.json, should return the well formatted
     data. That means that for any of the club, the following keys should be
-    present: name, email, points and reserved_places."""
+    present: 'name', 'email', 'points' and 'reserved_places'."""
     assert "name" in clubs[0].keys()
     assert "email" in clubs[0].keys()
     assert "points" in clubs[0].keys()
@@ -54,6 +42,9 @@ def test_load_clubs_good_keys(clubs):
 
 
 def test_load_clubs_values_good_type(clubs):
+    """Given the path to test_clubs.json, should return the well formatted
+    data. That means that the keys 'name' and 'email' should be strings, 'points'
+    should be integer and 'reserved_places' should be a dictionary. ."""
     assert type(clubs[0]["name"]) == str
     assert type(clubs[0]["email"]) == str
     assert type(clubs[0]["points"]) == int
@@ -63,13 +54,16 @@ def test_load_clubs_values_good_type(clubs):
 def test_load_competitions_good_keys(competitions):
     """Given the path to test_competitions.json, should return the well formatted
     data. That means that for any of the competitions, the following keys should be
-    present: name, date, number_of_places."""
+    present: 'name', 'date', 'number_of_places'."""
     assert "name" in competitions[0].keys()
     assert "date" in competitions[0].keys()
     assert "number_of_places" in competitions[0].keys()
 
 
 def test_load_competitions_values_good_type(competitions):
+    """Given the path to test_competitions.json, should return the well formatted
+    data. That means that the key 'name' should be a string, 'date'
+    should be a string and 'number_of_places' should be an integer."""
     assert type(competitions[0]["name"]) == str
     assert type(competitions[0]["date"]) == str
     assert type(competitions[0]["number_of_places"]) == int
@@ -269,7 +263,7 @@ test_values_run_check = [
     # should fail because the club requires more than 12 places.
     (spring_festival, simply_lift, 13, "you required more than 12 places !"),
     # should fail because the club only have 2 points.
-    (spring_festival, iron_temple, 3, "you do not have enough points !"),
+    (spring_festival, iron_temple, 3, "you do not have enough points!"),
     # should fail because there are only 2 places available at the competition.
     (summer_plates, simply_lift, 3, "there are no more places available !"),
     # should fail because the competition already took place
@@ -296,11 +290,14 @@ def test_run_checks_passing(app):
 def test_record_changes_club_correct_deduction(app,
                                                competitions, clubs,
                                                tmp_competitions_path, tmp_clubs_path):
-    """
-
-
+    """Given correctly formatted data on all competitions and clubs, on the club that purchased the places
+    and the competition to which it purchased them, the paths to the JSON files holding the data
+    on the clubs and the competitions, should correctly update the data on the relevant club.
     """
     with app.test_request_context("/", method="POST"):
+        assert clubs[0]["points"] == 13
+        assert clubs[0]["reserved_places"]["Spring Festival"] == 6
+
         updated_competitions, updated_club = record_changes(competitions, competitions[0], clubs, clubs[0],
                                                             10, tmp_competitions_path, tmp_clubs_path)
 
@@ -314,13 +311,33 @@ def test_record_changes_club_correct_deduction(app,
         # wasn't called before to check the validity of the operation.
         assert updated_club["reserved_places"]["Spring Festival"] == 16
 
+        # The data written to the file should be updated in the same way.
+        with open(tmp_clubs_path, "r") as to_be_updated_clubs:
+            updated_clubs_in_file = json.load(to_be_updated_clubs)
+
+        assert updated_clubs_in_file["clubs"][0]["points"] == 3
+        assert updated_clubs_in_file["clubs"][0]["reserved_places"]["Spring Festival"] == 16
+
 
 def test_record_changes_competition_correct_deduction(app,
                                                       competitions, clubs,
                                                       tmp_competitions_path, tmp_clubs_path):
+    """Given correctly formatted data on all competitions and clubs, on the club that purchased the places
+    and the competition to which it purchased them, the paths to the JSON files holding the data
+    on the clubs and the competitions, should correctly update the data on the relevant competition.
+    """
     with app.test_request_context("/", method="POST"):
+        assert competitions[0]["number_of_places"] == 25
+
         updated_competitions, updated_club = record_changes(competitions, competitions[0], clubs, clubs[0],
                                                             10, tmp_competitions_path, tmp_clubs_path)
         # The competition is spring_festival. Before the purchase, they had 25 places available.
         # Thus, after the purchase they should only have 15 places available.
         assert updated_competitions[0]["number_of_places"] == 15
+
+        # The data written to the file should be updated in the same way.
+        with open(tmp_competitions_path, "r") as to_be_updated_competitions:
+            updated_competitions_in_file = json.load(to_be_updated_competitions)
+
+        assert updated_competitions_in_file["competitions"][0]["number_of_places"] == 15
+
