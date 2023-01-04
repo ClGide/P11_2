@@ -6,8 +6,8 @@ always strings while the values can be strings, integers, booleans and
 even dictionaries.
 """
 
-
 from flask import render_template, request, redirect, flash, url_for, Blueprint
+
 # without the ., the below import statement won't work. Remember, the app is created in
 # __init__.py.
 from .utils import (load_clubs, search_club,
@@ -24,6 +24,7 @@ bp = Blueprint('gudlft', __name__)
 
 @bp.route('/')
 def index(club_path=CLUB_PATH):
+    """Loads data about the clubs in index.html"""
     clubs = load_clubs(club_path)
     return render_template('index.html',
                            clubs=clubs)
@@ -118,6 +119,7 @@ def purchase_places(competition_path=COMPETITION_PATH, club_path=CLUB_PATH):
 
 @bp.route("/points")
 def points(club_path=CLUB_PATH):
+    """Loads data about the clubs in points.html"""
     clubs_to_display = load_clubs(club_path)
     return render_template("points.html",
                            clubs=clubs_to_display)
@@ -125,4 +127,6 @@ def points(club_path=CLUB_PATH):
 
 @bp.route('/logout')
 def logout():
+    """Redirects the user to index page, the one where he can
+    log in with his email."""
     return redirect(url_for('gudlft.index'))

@@ -6,17 +6,17 @@ always strings while the values can be strings, integers, booleans and
 even dictionaries.
 """
 
-
 import json
-from flask import flash, render_template
 from datetime import datetime
 from typing import Union
+
+from flask import flash, render_template
 
 
 def load_clubs(path) -> list[dict[str, any]]:
     """Loads the JSON file containing data about the clubs and
     returns it in a list."""
-    with open(path) as clubs:
+    with open(path, encoding="utf-8") as clubs:
         list_of_clubs = json.load(clubs)['clubs']
         return list_of_clubs
 
@@ -24,7 +24,7 @@ def load_clubs(path) -> list[dict[str, any]]:
 def load_competitions(path) -> list[dict[str, any]]:
     """Loads the JSON file containing data about the competitions and
     returns it in a list."""
-    with open(path) as competitions:
+    with open(path, encoding="utf-8") as competitions:
         list_of_competitions = json.load(competitions)['competitions']
         return list_of_competitions
 
@@ -40,7 +40,7 @@ def search_club(field: str, value: any, path: str) -> Union[tuple[
     clubs = load_clubs(path)
     try:
         club = [club for club in clubs if club[field] == value][0]
-    except IndexError or KeyError:
+    except (IndexError, KeyError):
         raise ValueError("there is no item matching the value you entered")
     else:
         return club, clubs
@@ -58,7 +58,7 @@ def search_competition(field: str, value: any, path: str) -> Union[tuple[
     try:
         competition = [competition for competition in competitions
                        if competition[field] == value][0]
-    except IndexError or KeyError:
+    except (IndexError, KeyError):
         raise ValueError("there is no item matching the value you entered")
     else:
         return competition, competitions
@@ -80,7 +80,7 @@ def update_all_competitions_taken_place_field(
         else:
             competition["taken_place"] = False
             with open(
-                    competition_path, "w"
+                    competition_path, "w", encoding="utf-8"
             ) as file_to_write_competitions:
                 json.dump({"competitions": competitions},
                           file_to_write_competitions,
@@ -105,6 +105,7 @@ def more_than_12_reserved_places(club_reserved_places: int,
     if to_be_reserved_total_places > 12:
         flash("you required more than 12 places !")
         return "failed_check"
+    return None
 
 
 def not_enough_points(required_places: int,
@@ -124,6 +125,7 @@ def not_enough_points(required_places: int,
     if required_places > club_number_of_points:
         flash("you do not have enough points!")
         return "failed_check"
+    return None
 
 
 def no_more_available_places(places_available: int,
@@ -141,6 +143,7 @@ def no_more_available_places(places_available: int,
     if places_available - required_places < 0:
         flash("there are no more places available !")
         return "failed_check"
+    return None
 
 
 def competition_took_place(competition: dict[str, any]) -> Union[str, None]:
@@ -166,10 +169,11 @@ def competition_took_place(competition: dict[str, any]) -> Union[str, None]:
     if competition["taken_place"]:
         flash("the competition already took place !")
         return "failed_check"
+    return None
 
 
 def run_checks(competition: dict[str, any], club: dict[str, any],
-               required_places: int) -> callable:
+               required_places: int) -> Union[callable, None]:
     """Makes sure all conditions are met to enable the club to purchase the
     required places at the competition.
 
@@ -202,6 +206,7 @@ def run_checks(competition: dict[str, any], club: dict[str, any],
         return render_template("booking.html",
                                club=club,
                                competition=competition)
+    return None
 
 
 def record_changes(competitions: list[dict[str, any]],
@@ -246,15 +251,14 @@ def record_changes(competitions: list[dict[str, any]],
     club["reserved_places"][
         competition_to_be_booked_name] = total_reserved_places
 
-    with open(club_path, "w") as to_be_updated_clubs:
+    with open(club_path, "w", encoding="utf-8") as to_be_updated_clubs:
         json.dump({"clubs": clubs},
                   to_be_updated_clubs,
                   indent=4)
 
-    with open(competition_path, "w") as to_be_updated_competitions:
+    with open(competition_path, "w", encoding="utf-8") as to_be_updated_competitions:
         json.dump({"competitions": competitions},
                   to_be_updated_competitions,
                   indent=4)
 
     return competitions, club
-

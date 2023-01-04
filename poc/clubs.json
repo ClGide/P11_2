@@ -21,9 +21,9 @@
         {
             "name": "She Lifts",
             "email": "kate@shelifts.co.uk",
-            "points": 12,
+            "points": 9,
             "reserved_places": {
-                "Spring Festival": 0,
+                "Spring Festival": 3,
                 "Fall Classic": 0
             }
         }
