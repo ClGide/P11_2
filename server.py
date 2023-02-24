@@ -46,6 +46,12 @@ def purchasePlaces():
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
     placesRequired = int(request.form['places'])
+    # Below line solved bug #6
+    club["points"] = int(club["points"]) - int(placesRequired)
+    with open("clubs.json", "w", encoding="utf-8") as to_be_updated_clubs:
+        json.dump({"clubs": clubs},
+                  to_be_updated_clubs,
+                  indent=4)
     competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
