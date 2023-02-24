@@ -30,6 +30,7 @@ def index():
 @app.route('/showSummary', methods=['POST'])
 def show_summary():
     club = [club for club in clubs if club['email'] == request.form['email']][0]
+    # the below line implements feature #7 (and not bug nr1 as the previous commit says)
     return render_template('welcome.html', clubs=clubs, club=club, competitions=competitions)
 
 
