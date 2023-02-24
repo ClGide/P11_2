@@ -50,21 +50,14 @@ def purchasePlaces():
     club = [c for c in clubs if c['name'] == request.form['club']][0]
     placesRequired = int(request.form['places'])
     competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
-    if datetime.strptime(
-            competition["date"], "%Y-%m-%d %H:%M:%S"
-    ) <= datetime.now():
-        competition["taken_place"] = True
-    else:
-        competition["taken_place"] = False
-    if competition["taken_place"]:
-        flash("the competition already took place !")
-    else:
-        flash('Great-booking complete!')
+    to_be_reserved_total_places = int(club["reserved_places"][competition["name"]]) + placesRequired
+    if to_be_reserved_total_places > 12:
+        flash("you required more than 12 places !")
+        return render_template("booking.html",
+                               club=club,
+                               competition=competition)
 
-    with open("competitions.json", "w", encoding="utf-8") as to_be_updated_competitions:
-        json.dump({"competitions": competitions},
-                  to_be_updated_competitions,
-                  indent=4)
+    flash('Great-booking complete!')
 
     return render_template('welcome.html', club=club, competitions=competitions)
 
